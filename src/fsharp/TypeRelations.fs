@@ -145,7 +145,7 @@ let FindWitness g amap m (wenv: WitnessEnv) (traitTy: TType) =
     | WitnessEnv (nenv,instantiationGenerator) ->  
 
          let possibilities = 
-            nenv.eTyconsByAccessNames.Values
+            nenv.eTyconsByDemangledNameAndArity.Values
             |> List.choose (fun witnessTyconRef -> 
             
                  if TyconRefHasAttribute g m g.attrib_WitnessAttribute witnessTyconRef &&
@@ -166,7 +166,8 @@ let FindWitness g amap m (wenv: WitnessEnv) (traitTy: TType) =
              errorR(Error(FSComp.SR.tcNoSolutionToTrait(typeText),m))
              None
          | sln :: _ -> 
-             printfn "too many solutions for trait %s" (NicePrint.stringOfTy (DisplayEnv.Empty g) traitTy)
+             printfn "Too many solutions for trait %s:" (NicePrint.stringOfTy (DisplayEnv.Empty g) traitTy)
+             let _ = possibilities |> List.map (fun possTy -> printfn "Possibility: %s" (NicePrint.stringOfTy (DisplayEnv.Empty g) possTy))
              Some sln
 
 

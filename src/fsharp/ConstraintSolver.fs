@@ -890,7 +890,10 @@ and SolveTyparSubtypeOfType (csenv:ConstraintSolverEnv) ndeep m2 trace tp ty1 =
         SolveTypEqualsTypKeepAbbrevs csenv ndeep m2 trace (mkTyparTy tp) ty1
     else 
         (if isAppTy g ty1 &&  TyconRefHasAttribute g m g.attrib_TraitAttribute (tcrefOfAppTy g ty1) then 
-             AddConstraint csenv ndeep m2 trace tp  (TyparConstraint.Associated(ty1,m))
+             // For U :> MergeTrait<T>, record the fact that solving T implies solving U,
+             // hence generalizing T implied generalizing U
+             let ftvs = (freeInType CollectTyparsNoCaching ty1).FreeTypars |> Seq.toList             
+             ftvs |> IterateD (fun ftv -> AddConstraint csenv ndeep m2 trace ftv  (TyparConstraint.Associated(mkTyparTy tp,m)))
          else
              CompleteD
         ) ++ (fun () -> AddConstraint csenv ndeep m2 trace tp  (TyparConstraint.CoercesTo(ty1,m)))
